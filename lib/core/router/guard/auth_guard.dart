@@ -5,12 +5,14 @@ import '../../api/api_client.dart';
 import '../../api/endpoints.dart';
 import '../../storage/token_storage.dart';
 
-
 class AuthGuard {
   static bool _checkedOnce = false;
   static bool _isValid = false;
 
-  static FutureOr<String?> redirect(BuildContext context, GoRouterState state) async {
+  static FutureOr<String?> redirect(
+    BuildContext context,
+    GoRouterState state,
+  ) async {
     final access = await TokenStorage.instance.readAccess();
     final isLoggingIn = state.matchedLocation == '/login';
 

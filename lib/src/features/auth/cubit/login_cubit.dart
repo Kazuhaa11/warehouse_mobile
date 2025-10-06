@@ -20,13 +20,16 @@ class LoginCubit extends Cubit<LoginState> {
   final IAuthRepository _repo;
 
   LoginCubit({IAuthRepository? repo})
-      : _repo = repo ?? AuthRepositoryImpl(),
-        super(const LoginState.initial());
+    : _repo = repo ?? AuthRepositoryImpl(),
+      super(const LoginState.initial());
 
   Future<void> login(String email, String password) async {
     emit(const LoginState.loading());
     try {
-      final (access, refresh, user) = await _repo.login(email: email, password: password);
+      final (access, refresh, user) = await _repo.login(
+        email: email,
+        password: password,
+      );
       emit(LoginState.success(accessToken: access, user: user));
     } catch (e) {
       emit(LoginState.failure(e.toString()));

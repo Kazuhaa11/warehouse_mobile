@@ -9,7 +9,7 @@ class ApiClient {
 
   final String baseUrl = const String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://localhost:8080',
+    defaultValue: 'http://172.16.85.166:8080',
   );
 
   final _dio = Dio();
@@ -30,18 +30,22 @@ class ApiClient {
     if (refresh == null || refresh.isEmpty) return false;
 
     try {
-      final res = await _dio.post(Endpoints.refresh, data: {'refresh_token': refresh});
+      final res = await _dio.post(
+        Endpoints.refresh,
+        data: {'refresh_token': refresh},
+      );
       if (res.statusCode == 200) {
         final body = res.data as Map<String, dynamic>;
         final newAccess = (body['access_token'] ?? '') as String;
         final newRefresh = body['refresh_token'] as String?;
         if (newAccess.isEmpty) return false;
-        await TokenStorage.instance.save(access: newAccess, refresh: newRefresh ?? refresh);
+        await TokenStorage.instance.save(
+          access: newAccess,
+          refresh: newRefresh ?? refresh,
+        );
         return true;
       }
-    } catch (_) {
-
-    }
+    } catch (_) {}
     return false;
   }
 
@@ -54,6 +58,7 @@ class ApiClient {
     );
 
     _dio.interceptors.clear();
+
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
