@@ -39,13 +39,17 @@ class HomePage extends StatelessWidget {
               '/tambah-barang',
               extra: {"barang_id": id},
             );
-            if (added != null) print("Barang ditambahkan: $added");
+            if (added != null) {
+            
+            }
           } else {
             final added = await context.push<Map<String, dynamic>>(
               '/tambah-barang',
               extra: {"scan": result},
             );
-            if (added != null) print("Barang ditambahkan: $added");
+            if (added != null){
+
+            }
           }
         },
         backgroundColor: Colors.blue,

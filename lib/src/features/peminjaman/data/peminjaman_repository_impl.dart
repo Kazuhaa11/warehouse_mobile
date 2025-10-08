@@ -63,7 +63,6 @@ class PeminjamanRepositoryImpl implements IPeminjamanRepository {
       final res = await _dio.get('${Endpoints.peminjaman}/$id');
 
       if (res.statusCode == 200) {
-        // >>>> robust decode
         final raw = res.data;
         final Map<String, dynamic> body = raw is String
             ? jsonDecode(raw) as Map<String, dynamic>
@@ -106,6 +105,26 @@ class PeminjamanRepositoryImpl implements IPeminjamanRepository {
       throw Exception('Gagal load detail peminjaman (${res.statusCode})');
     } on DioException catch (e) {
       throw Exception('Error request detail: ${e.message}');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> createPeminjaman(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      final res = await _dio.post(Endpoints.peminjaman, data: payload);
+
+      if (res.statusCode == 200) {
+        final raw = res.data;
+        final Map<String, dynamic> body = raw is String
+            ? jsonDecode(raw)
+            : Map<String, dynamic>.from(raw);
+        return body['data'] ?? {};
+      }
+      throw Exception('Gagal create peminjaman (${res.statusCode})');
+    } on DioException catch (e) {
+      throw Exception('Error create peminjaman: ${e.message}');
     }
   }
 }

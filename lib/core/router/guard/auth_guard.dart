@@ -8,6 +8,7 @@ import '../../storage/token_storage.dart';
 class AuthGuard {
   static bool _checkedOnce = false;
   static bool _isValid = false;
+  static bool _isChecking = false;
 
   static FutureOr<String?> redirect(
     BuildContext context,
@@ -20,15 +21,25 @@ class AuthGuard {
       return isLoggingIn ? null : '/login';
     }
 
+    if (_isChecking) return null;
+
     if (!_checkedOnce) {
+      _isChecking = true;
       try {
         final dio = ApiClient.instance.dio;
-        await dio.get(Endpoints.me);
-        _isValid = true;
-      } catch (_) {
+        final res = await dio.get(Endpoints.me);
+
+        if (res.statusCode == 200) {
+          _isValid = true;
+        } else {
+          _isValid = false;
+        }
+      } catch (e) {
         _isValid = false;
+      } finally {
+        _isChecking = false;
+        _checkedOnce = true;
       }
-      _checkedOnce = true;
     }
 
     if (!_isValid) {
@@ -45,5 +56,6 @@ class AuthGuard {
   static void reset() {
     _checkedOnce = false;
     _isValid = false;
+    _isChecking = false;
   }
 }

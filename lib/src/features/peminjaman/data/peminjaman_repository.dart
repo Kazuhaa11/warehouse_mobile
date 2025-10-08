@@ -6,4 +6,5 @@ abstract class IPeminjamanRepository {
   });
 
   Future<Map<String, dynamic>> getDetail(int id);
+  Future<Map<String, dynamic>> createPeminjaman(Map<String, dynamic> payload);
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import 'package:warehouse_mobile/core/router/guard/auth_guard.dart';
 import '../storage/token_storage.dart';
 import 'endpoints.dart';
 
@@ -9,10 +10,10 @@ class ApiClient {
 
   final String baseUrl = const String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://172.16.85.166:8080',
+    defaultValue: 'http://172.16.86.57:8080',
   );
 
-  final _dio = Dio();
+  final Dio _dio = Dio();
   Dio get dio => _dio;
 
   bool _isRefreshing = false;
@@ -34,18 +35,22 @@ class ApiClient {
         Endpoints.refresh,
         data: {'refresh_token': refresh},
       );
+
       if (res.statusCode == 200) {
         final body = res.data as Map<String, dynamic>;
         final newAccess = (body['access_token'] ?? '') as String;
         final newRefresh = body['refresh_token'] as String?;
         if (newAccess.isEmpty) return false;
+
         await TokenStorage.instance.save(
           access: newAccess,
           refresh: newRefresh ?? refresh,
         );
         return true;
       }
-    } catch (_) {}
+    } catch (e) {
+      // ignore
+    }
     return false;
   }
 
@@ -63,26 +68,30 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           await _attachAccessHeader(options);
-          handler.next(options);
+          return handler.next(options);
         },
-        onError: (e, handler) async {
+        onError: (DioException e, handler) async {
           final req = e.requestOptions;
+          final status = e.response?.statusCode ?? 0;
           final isAuthRefreshCall = req.path.endsWith(Endpoints.refresh);
 
-          if (e.response?.statusCode == 401 && !isAuthRefreshCall) {
+          if (status == 401 && !isAuthRefreshCall) {
+
             if (_isRefreshing) {
               await _refreshCompleter?.future;
             } else {
               _isRefreshing = true;
               _refreshCompleter = Completer<void>();
-              final ok = await _tryRefresh();
+
+              final refreshed = await _tryRefresh();
+
               _isRefreshing = false;
               _refreshCompleter?.complete();
               _refreshCompleter = null;
 
-              if (!ok) {
-                await TokenStorage.instance.clear();
-                return handler.next(e);
+              if (!refreshed) {
+                await _forceLogout();
+                return handler.reject(e);
               }
             }
 
@@ -91,14 +100,25 @@ class ApiClient {
               final clone = await _dio.fetch(req);
               return handler.resolve(clone);
             } catch (err) {
+              await _forceLogout();
               return handler.reject(err as DioException);
             }
           }
 
-          handler.next(e);
+          return handler.next(e);
         },
       ),
     );
+  }
+
+  Future<void> _forceLogout() async {
+    await TokenStorage.instance.clear();
+    AuthGuard.reset();
+
+    final nav = TokenStorage.navigatorKey.currentState;
+    if (nav != null) {
+      nav.pushNamedAndRemoveUntil('/login', (route) => false);
+    }
   }
 
   static Future<void> init() async {

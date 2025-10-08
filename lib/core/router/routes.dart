@@ -1,5 +1,6 @@
 // import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:warehouse_mobile/core/storage/token_storage.dart';
 import 'package:warehouse_mobile/src/views/add_barang/tambah_barang_page.dart';
 import 'package:warehouse_mobile/src/views/home/home_shell.dart';
 import '../../src/views/auth/pages/pages/login_page.dart';
@@ -18,6 +19,7 @@ class AppRouter {
   static final AppRouter instance = AppRouter._();
 
   late final GoRouter router = GoRouter(
+    navigatorKey: TokenStorage.navigatorKey,
     initialLocation: AppPaths.login,
     redirect: AuthGuard.redirect,
     routes: <RouteBase>[
@@ -46,8 +48,12 @@ class AppRouter {
         path: AppPaths.tambahBarang,
         name: 'tambah-barang',
         builder: (context, state) {
-          final id = state.extra as int;
-          return TambahBarangPage(barangId: id);
+          final extra = state.extra as Map<String, dynamic>?;
+
+          final int? id = extra?['barang_id'] as int?;
+          final String? scan = extra?['scan'] as String?;
+
+          return TambahBarangPage(barangId: id, scan: scan);
         },
       ),
     ],

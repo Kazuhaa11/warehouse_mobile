@@ -57,6 +57,7 @@ class LoginPage extends StatelessWidget {
                               if (role == 'mobile') {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
+                                    backgroundColor: Colors.green,
                                     content: Text(
                                       "Login sukses",
                                     ),
@@ -69,6 +70,7 @@ class LoginPage extends StatelessWidget {
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
+                                      backgroundColor: Colors.red,
                                       content: Text(
                                         "Role $role tidak diizinkan",
                                       ),

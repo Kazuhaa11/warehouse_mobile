@@ -20,8 +20,8 @@ class LoginCubit extends Cubit<LoginState> {
   final IAuthRepository _repo;
 
   LoginCubit({IAuthRepository? repo})
-    : _repo = repo ?? AuthRepositoryImpl(),
-      super(const LoginState.initial());
+      : _repo = repo ?? AuthRepositoryImpl(),
+        super(const LoginState.initial());
 
   Future<void> login(String email, String password) async {
     emit(const LoginState.loading());
@@ -30,9 +30,20 @@ class LoginCubit extends Cubit<LoginState> {
         email: email,
         password: password,
       );
+
+      final role = (user['role'] ?? '').toString().toLowerCase();
+
+      if (role == 'admin') {
+        emit(const LoginState.failure(
+          'Role admin tidak diizinkan login di aplikasi mobile.',
+        ));
+        return;
+      }
+
       emit(LoginState.success(accessToken: access, user: user));
     } catch (e) {
-      emit(LoginState.failure(e.toString()));
+      String message = 'Login gagal';
+      emit(LoginState.failure(message));
     }
   }
 }

@@ -17,6 +17,11 @@ class PeminjamanError extends PeminjamanState {
   PeminjamanError(this.message);
 }
 
+class PeminjamanCreated extends PeminjamanState {
+  final Map<String, dynamic> data;
+  PeminjamanCreated(this.data);
+}
+
 class PeminjamanCubit extends Cubit<PeminjamanState> {
   final IPeminjamanRepository repo;
   PeminjamanCubit(this.repo) : super(PeminjamanInitial());
@@ -26,6 +31,16 @@ class PeminjamanCubit extends Cubit<PeminjamanState> {
     try {
       final data = await repo.getList(q: q);
       emit(PeminjamanLoaded(data));
+    } catch (e) {
+      emit(PeminjamanError(e.toString()));
+    }
+  }
+
+  Future<void> create(Map<String, dynamic> payload) async {
+    emit(PeminjamanLoading());
+    try {
+      final data = await repo.createPeminjaman(payload);
+      emit(PeminjamanCreated(data));
     } catch (e) {
       emit(PeminjamanError(e.toString()));
     }

@@ -7,18 +7,20 @@ class QrScannerPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool handled = false;
     return Scaffold(
       appBar: AppBar(title: const Text('QR Scanner')),
       body: MobileScanner(
         onDetect: (capture) {
-          final List<Barcode> barcodes = capture.barcodes;
-          if (barcodes.isNotEmpty) {
-            final raw = barcodes.first.rawValue;
-            print("Qr detected: $raw");
-            if (raw != null) {
-              Navigator.pop(context);
-              onDetect(raw);
-            }
+          if (handled) return;
+          handled = true;
+
+          final barcodes = capture.barcodes;
+          final raw = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
+
+          if (raw != null) {
+            debugPrint("QR DETECTED: $raw");
+            onDetect(raw);
           }
         },
       ),
