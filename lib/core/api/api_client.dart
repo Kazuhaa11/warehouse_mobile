@@ -10,7 +10,7 @@ class ApiClient {
 
   final String baseUrl = const String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://172.16.86.57:8080',
+    defaultValue: 'http://172.16.84.114:8080',
   );
 
   final Dio _dio = Dio();

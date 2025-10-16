@@ -46,44 +46,51 @@ class LoginPage extends StatelessWidget {
                       Gaps.h16,
                       AppPasswordField(controller: passC, label: 'Password'),
                       Gaps.h24,
+
                       BlocConsumer<LoginCubit, LoginState>(
-                        listener: (context, state) {
+                        listener: (context, state) async {
                           state.whenOrNull(
                             success: (accessToken, user) async {
                               final role = (user['role'] ?? '')
                                   .toString()
                                   .toLowerCase();
 
-                              if (role == 'mobile') {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    backgroundColor: Colors.green,
-                                    content: Text(
-                                      "Login sukses",
-                                    ),
-                                  ),
+                              await TokenStorage.instance.save(
+                                access: accessToken,
+                                refresh: '',
+                                role: role,
+                              );
+
+                              if (!context.mounted) return;
+
+                              if (role == 'admin') {
+                                _showSnack(
+                                  context,
+                                  "Login sukses sebagai Admin",
+                                  Colors.green,
                                 );
-                                if (context.mounted) context.go('/home');
+                                context.go('/admin');
+                              } else if (role == 'mobile') {
+                                _showSnack(
+                                  context,
+                                  "Login sukses",
+                                  Colors.green,
+                                );
+                                context.go('/home');
                               } else {
                                 await TokenStorage.instance.clear();
                                 AuthGuard.reset();
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      backgroundColor: Colors.red,
-                                      content: Text(
-                                        "Role $role tidak diizinkan",
-                                      ),
-                                    ),
-                                  );
-                                  context.go('/login');
-                                }
+                                if (!context.mounted) return;
+
+                                _showSnack(
+                                  context,
+                                  'Role "$role" tidak diizinkan untuk login.',
+                                  Colors.red,
+                                );
                               }
                             },
                             failure: (msg) {
-                              ScaffoldMessenger.of(
-                                context,
-                              ).showSnackBar(SnackBar(content: Text(msg)));
+                              _showSnack(context, msg, Colors.red);
                             },
                           );
                         },
@@ -99,9 +106,21 @@ class LoginPage extends StatelessWidget {
                             onPressed: loading
                                 ? null
                                 : () {
+                                    final email = emailC.text.trim();
+                                    final pass = passC.text;
+
+                                    if (email.isEmpty || pass.isEmpty) {
+                                      _showSnack(
+                                        context,
+                                        "Email dan password wajib diisi.",
+                                        Colors.orange,
+                                      );
+                                      return;
+                                    }
+
                                     context.read<LoginCubit>().login(
-                                      emailC.text.trim(),
-                                      passC.text,
+                                      email,
+                                      pass,
                                     );
                                   },
                           );
@@ -116,5 +135,10 @@ class LoginPage extends StatelessWidget {
         ),
       ),
     );
+  }
+  void _showSnack(BuildContext context, String msg, Color color) {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(backgroundColor: color, content: Text(msg)));
   }
 }

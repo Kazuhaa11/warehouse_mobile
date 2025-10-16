@@ -13,4 +13,18 @@ class Endpoints {
 
   //storage
   static const storages = '/api/v1/storages';
+
+  static const stockOpnameSessions = '/api/v1/stock-opname/sessions';
+  static String stockOpnameDetail(int id) =>
+      '/api/v1/stock-opname/sessions/$id';
+  static String stockOpnameFinalize(int id) =>
+      '/api/v1/stock-opname/sessions/$id/finalize';
+  static String stockOpnameItems(int id) =>
+      '/api/v1/stock-opname/sessions/$id/items';
+  static String stockOpnameItemDetail(int sessionId, int itemId) =>
+      '/api/v1/stock-opname/sessions/$sessionId/items/$itemId';
+  static String stockOpnameImportItems(int sessionId) =>
+      '/api/v1/stock-opname/sessions/$sessionId/items/import';
+  static String stockOpnameRecap(int id) =>
+      '/api/v1/stock-opname/sessions/$id/recap';
 }
