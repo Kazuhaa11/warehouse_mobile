@@ -98,7 +98,9 @@ class StockOpnameDetailPage extends StatelessWidget {
                                   ),
                                 ),
                               );
-                              if (scanCode != null && scanCode.isNotEmpty) {
+                              if (scanCode != null &&
+                                  scanCode.isNotEmpty &&
+                                  context.mounted) {
                                 final result = await context.pushNamed(
                                   'tambah-item-opname',
                                   pathParameters: {'id': sessionId.toString()},

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:warehouse_mobile/core/api/endpoints.dart';
 import 'package:warehouse_mobile/core/api/api_client.dart';
 import 'package:warehouse_mobile/common/widgets/app_button.dart';
@@ -53,18 +52,18 @@ class _TambahItemOpnamePageState extends State<TambahItemOpnamePage> {
               onPressed: () async {
                 setState(() => _isLoading = true);
                 final messenger = ScaffoldMessenger.of(context);
+                final navigator = Navigator.of(context);
+                final sessionId = widget.sessionId;
+                final scan = widget.scan;
+                final counted = int.tryParse(qtyController.text) ?? 0;
 
                 try {
-                  final payload = {
-                    "material": widget.scan,
-                    "counted_qty": int.tryParse(qtyController.text) ?? 0,
-                  };
+                  final payload = {"material": scan, "counted_qty": counted};
 
                   final res = await _dio.post(
-                    Endpoints.stockOpnameItems(widget.sessionId),
+                    Endpoints.stockOpnameItems(sessionId),
                     data: payload,
                   );
-
                   if (res.statusCode == 200 || res.statusCode == 201) {
                     messenger.showSnackBar(
                       const SnackBar(
@@ -72,7 +71,7 @@ class _TambahItemOpnamePageState extends State<TambahItemOpnamePage> {
                         backgroundColor: Colors.green,
                       ),
                     );
-                    context.pop(true); 
+                    if (mounted) navigator.pop(true);
                   } else {
                     throw Exception(
                       res.data['message'] ?? 'Gagal menambah item',
@@ -86,7 +85,7 @@ class _TambahItemOpnamePageState extends State<TambahItemOpnamePage> {
                     ),
                   );
                 } finally {
-                  setState(() => _isLoading = false);
+                  if (mounted) setState(() => _isLoading = false);
                 }
               },
             ),
