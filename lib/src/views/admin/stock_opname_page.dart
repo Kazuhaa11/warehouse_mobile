@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:warehouse_mobile/core/router/guard/auth_guard.dart';
+import 'package:warehouse_mobile/src/features/auth/cubit/profile_cubit.dart';
 import '../../features/stock_opname/cubit/stock_opname_cubit.dart';
 import '../admin/stock_opname_detail_page.dart';
 
@@ -12,7 +15,48 @@ class StockOpnamePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('📦 Buat Sesi Stock Opname'),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Logout',
+            icon: const Icon(Icons.logout),
+            onPressed: () async {
+              final profileCubit = context.read<ProfileCubit>();
+              final profile = profileCubit.state;
+              final userId = profile?['id'] ?? profile?['user_id'];
+
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (dialogCtx) => AlertDialog(
+                  title: const Text('Konfirmasi Logout'),
+                  content: const Text('Apakah Anda yakin ingin logout?'),
+                  actions: [
+                    TextButton(
+                      child: const Text('Batal'),
+                      onPressed: () => Navigator.pop(dialogCtx, false),
+                    ),
+                    ElevatedButton(
+                      child: const Text('Logout'),
+                      onPressed: () => Navigator.pop(dialogCtx, true),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm != true) return;
+
+              await profileCubit.logout(userId);
+              AuthGuard.reset();
+
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              });
+            },
+          ),
+        ],
       ),
+
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showCreateSessionDialog(context),
         icon: const Icon(Icons.add),
@@ -98,12 +142,20 @@ class StockOpnamePage extends StatelessWidget {
                               backgroundColor: Colors.green,
                             )
                           : ElevatedButton.icon(
-                              icon: const Icon(Icons.list_alt, size: 18),
-                              label: const Text('Items'),
+                              icon: const Icon(
+                                Icons.list_alt,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              label: const Text(
+                                'Items',
+                                style: TextStyle(color: Colors.white),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blue,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                ),
                               ),
                               onPressed: () async {
                                 final id =
@@ -116,7 +168,9 @@ class StockOpnamePage extends StatelessWidget {
                                   ),
                                 );
                                 if (result == true && context.mounted) {
-                                  context.read<StockOpnameCubit>().fetchSessions();
+                                  context
+                                      .read<StockOpnameCubit>()
+                                      .fetchSessions();
                                 }
                               },
                             ),
@@ -171,9 +225,9 @@ class StockOpnamePage extends StatelessWidget {
               setState(() => isLoading = true);
               try {
                 await parentContext.read<StockOpnameCubit>().createSession(
-                      note,
-                      selectedDateTime!.toIso8601String(),
-                    );
+                  note,
+                  selectedDateTime!.toIso8601String(),
+                );
                 if (ctx.mounted) Navigator.pop(ctx);
               } finally {
                 if (ctx.mounted) setState(() => isLoading = false);

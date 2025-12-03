@@ -14,10 +14,9 @@ class ProfilePage extends StatelessWidget {
     return BlocBuilder<ProfileCubit, Map<String, dynamic>?>(
       builder: (context, user) {
         if (user == null) {
-          // kalau belum load, tampil loading
           context
               .read<ProfileCubit>()
-              .loadProfile(); // ✅ panggil loadProfile sekali
+              .loadProfile();
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );

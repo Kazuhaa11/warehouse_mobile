@@ -8,19 +8,44 @@ import '../../../../../common/widgets/gaps.dart';
 import '../../../../features/auth/cubit/login_cubit.dart';
 import '../../../../../core/storage/token_storage.dart';
 import '../../../../../core/router/guard/auth_guard.dart';
+import '../../../../../core/api/api_client.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
+
+  Future<void> _resetServer(BuildContext context) async {
+    await TokenStorage.instance.clear();
+    await ApiClient.instance.setServerIp("");
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('server_ip');
+
+    AuthGuard.reset();
+
+    if (context.mounted) {
+      context.go('/setup');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final emailC = TextEditingController();
     final passC = TextEditingController();
 
-    return BlocProvider(
-      create: (_) => LoginCubit(),
-      child: Scaffold(
-        body: SafeArea(
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => _resetServer(context),
+        ),
+        title: const Text("Login"),
+        centerTitle: true,
+      ),
+
+      body: BlocProvider(
+        create: (_) => LoginCubit(),
+        child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -37,14 +62,18 @@ class LoginPage extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       Gaps.h24,
+
                       AppTextField(
                         controller: emailC,
                         label: 'Email',
                         keyboardType: TextInputType.emailAddress,
                         textInputAction: TextInputAction.next,
                       ),
+
                       Gaps.h16,
+
                       AppPasswordField(controller: passC, label: 'Password'),
+
                       Gaps.h24,
 
                       BlocConsumer<LoginCubit, LoginState>(
@@ -80,8 +109,8 @@ class LoginPage extends StatelessWidget {
                               } else {
                                 await TokenStorage.instance.clear();
                                 AuthGuard.reset();
-                                if (!context.mounted) return;
 
+                                if (!context.mounted) return;
                                 _showSnack(
                                   context,
                                   'Role "$role" tidak diizinkan untuk login.',
@@ -94,6 +123,7 @@ class LoginPage extends StatelessWidget {
                             },
                           );
                         },
+
                         builder: (context, state) {
                           final loading = state.maybeWhen(
                             loading: () => true,
@@ -126,6 +156,20 @@ class LoginPage extends StatelessWidget {
                           );
                         },
                       ),
+
+                      Gaps.h16,
+                      GestureDetector(
+                        onTap: () => _resetServer(context),
+                        child: const Text(
+                          "Ubah server",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.blue,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -136,6 +180,7 @@ class LoginPage extends StatelessWidget {
       ),
     );
   }
+
   void _showSnack(BuildContext context, String msg, Color color) {
     ScaffoldMessenger.of(
       context,

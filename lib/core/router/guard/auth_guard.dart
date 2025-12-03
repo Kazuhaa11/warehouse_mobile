@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../api/api_client.dart';
 import '../../api/endpoints.dart';
@@ -10,10 +9,13 @@ class AuthGuard {
   static bool _isValid = false;
   static bool _isChecking = false;
 
-  static FutureOr<String?> redirect(
-    BuildContext context,
-    GoRouterState state,
-  ) async {
+  static void reset() {
+    _checkedOnce = false;
+    _isValid = false;
+    _isChecking = false;
+  }
+
+  static FutureOr<String?> redirectState(GoRouterState state) async {
     final access = await TokenStorage.instance.readAccess();
     final isLoggingIn = state.matchedLocation == '/login';
 
@@ -47,15 +49,8 @@ class AuthGuard {
       return '/login';
     }
 
-    if (isLoggingIn) {
-      return '/home';
-    }
-    return null;
-  }
+    if (isLoggingIn) return '/home';
 
-  static void reset() {
-    _checkedOnce = false;
-    _isValid = false;
-    _isChecking = false;
+    return null;
   }
 }

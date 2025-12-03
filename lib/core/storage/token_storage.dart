@@ -7,7 +7,11 @@ class TokenStorage {
 
   static final navigatorKey = GlobalKey<NavigatorState>();
 
-  Future<void> save({required String access, String? refresh, String? role}) async {
+  Future<void> save({
+    required String access,
+    String? refresh,
+    String? role,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('access_token', access);
     if (refresh != null && refresh.isNotEmpty) {
@@ -35,6 +39,8 @@ class TokenStorage {
 
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
+    await prefs.remove('access_token');
+    await prefs.remove('refresh_token');
+    await prefs.remove('role');
   }
 }
