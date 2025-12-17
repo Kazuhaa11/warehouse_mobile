@@ -60,4 +60,9 @@ class StockOpnameRepositoryImpl implements IStockOpnameRepository {
     final data = (body['data'] ?? []) as List;
     return data.map((e) => e as Map<String, dynamic>).toList();
   }
+
+  @override
+  Future<void> deleteItem(int sessionId, int itemId) async {
+    await _dio.delete('/api/v1/stock-opname/$sessionId/item/$itemId');
+  }
 }

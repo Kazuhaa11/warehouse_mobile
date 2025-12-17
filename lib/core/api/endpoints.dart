@@ -27,4 +27,6 @@ class Endpoints {
       '/api/v1/stock-opname/sessions/$sessionId/items/import';
   static String stockOpnameRecap(int id) =>
       '/api/v1/stock-opname/sessions/$id/recap';
+  static String stockOpnameDeleteItem(int sessionId, int itemId) =>
+      '/api/v1/stock-opname/sessions/$sessionId/items/$itemId';
 }

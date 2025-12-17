@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 class QrScannerPage extends StatelessWidget {
-  final Function(String code) onDetect;
+  final Function(String material) onDetect;
+
   const QrScannerPage({super.key, required this.onDetect});
 
   @override
@@ -18,10 +20,37 @@ class QrScannerPage extends StatelessWidget {
           final barcodes = capture.barcodes;
           final raw = barcodes.isNotEmpty ? barcodes.first.rawValue : null;
 
-          if (raw != null) {
-            debugPrint("QR DETECTED: $raw");
-            onDetect(raw);
+          if (raw == null || raw.isEmpty) {
+            handled = false;
+            return;
           }
+
+          debugPrint('QR RAW: $raw');
+
+          String? material;
+          try {
+            final decoded = jsonDecode(raw);
+            if (decoded is Map<String, dynamic>) {
+              material = decoded['material']?.toString();
+            }
+          } catch (_) {
+            material = raw;
+          }
+
+          if (material == null || material.isEmpty) {
+            handled = false;
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('QR tidak valid'),
+                backgroundColor: Colors.red,
+              ),
+            );
+            return;
+          }
+
+          print('QR MATERIAL: $material');
+
+          onDetect(material);
         },
       ),
     );

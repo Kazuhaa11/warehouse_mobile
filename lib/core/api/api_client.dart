@@ -2,8 +2,10 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warehouse_mobile/core/router/guard/auth_guard.dart';
+import 'package:warehouse_mobile/core/router/routes.dart';
 import '../storage/token_storage.dart';
 import 'endpoints.dart';
+import 'package:go_router/go_router.dart';
 
 class ApiClient {
   ApiClient._();
@@ -33,14 +35,18 @@ class ApiClient {
   }
 
   String _buildBaseUrl(String ip) {
-    return "http://$ip/lm/whsEng/public/";
+    return "http://$ip:8080/";
+  }
+
+  bool _isValidHost(String ip) {
+    return ip == "localhost" || ip.contains(".");
   }
 
   Future<void> _setBaseUrl(String ip) async {
     _serverIp = ip;
 
-    if (!ip.contains(".")) {
-      _applyOptions("");
+    if (!_isValidHost(ip)) {
+      _applyOptions(null);
       return;
     }
 
@@ -49,7 +55,7 @@ class ApiClient {
   }
 
   void _applyOptions(String? baseUrl) {
-    final safeUrl = baseUrl ?? "http://0.0.0.0/";
+    final safeUrl = baseUrl ?? "http://localhost:8080/";
 
     _dio.options = BaseOptions(
       baseUrl: safeUrl,
@@ -151,9 +157,9 @@ class ApiClient {
     await TokenStorage.instance.clear();
     AuthGuard.reset();
 
-    final nav = TokenStorage.navigatorKey.currentState;
-    if (nav != null) {
-      nav.pushNamedAndRemoveUntil('/login', (route) => false);
-    }
+    final navContext = TokenStorage.navigatorKey.currentContext;
+    if (navContext == null) return;
+    if (!navContext.mounted) return;
+    GoRouter.of(navContext).go(AppPaths.login);
   }
 }
