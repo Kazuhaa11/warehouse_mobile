@@ -48,8 +48,6 @@ class QrScannerPage extends StatelessWidget {
             return;
           }
 
-          print('QR MATERIAL: $material');
-
           onDetect(material);
         },
       ),

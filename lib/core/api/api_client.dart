@@ -2,10 +2,8 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:warehouse_mobile/core/router/guard/auth_guard.dart';
-import 'package:warehouse_mobile/core/router/routes.dart';
 import '../storage/token_storage.dart';
 import 'endpoints.dart';
-import 'package:go_router/go_router.dart';
 
 class ApiClient {
   ApiClient._();
@@ -35,7 +33,7 @@ class ApiClient {
   }
 
   String _buildBaseUrl(String ip) {
-    return "http://$ip:8080/";
+    return "http://$ip/warehouse-new/public/";
   }
 
   bool _isValidHost(String ip) {
@@ -156,10 +154,5 @@ class ApiClient {
   Future<void> _forceLogout() async {
     await TokenStorage.instance.clear();
     AuthGuard.reset();
-
-    final navContext = TokenStorage.navigatorKey.currentContext;
-    if (navContext == null) return;
-    if (!navContext.mounted) return;
-    GoRouter.of(navContext).go(AppPaths.login);
   }
 }
