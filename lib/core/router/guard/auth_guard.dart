@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:go_router/go_router.dart';
 import '../../api/api_client.dart';
 import '../../api/endpoints.dart';
 import '../../storage/token_storage.dart';
@@ -15,12 +14,15 @@ class AuthGuard {
     _isChecking = false;
   }
 
-  static FutureOr<String?> redirectState(GoRouterState state) async {
+  static FutureOr<String?> redirectState(state) async {
     final access = await TokenStorage.instance.readAccess();
-    final isLoggingIn = state.matchedLocation == '/login';
+    final role = await TokenStorage.instance.readRole();
+
+    final isLogin = state.matchedLocation == '/login';
+    final isAdminRoute = state.matchedLocation.startsWith('/admin');
 
     if (access == null || access.isEmpty) {
-      return isLoggingIn ? null : '/login';
+      return isLogin ? null : '/login';
     }
 
     if (_isChecking) return null;
@@ -28,28 +30,30 @@ class AuthGuard {
     if (!_checkedOnce) {
       _isChecking = true;
       try {
-        final dio = ApiClient.instance.dio;
-        final res = await dio.get(Endpoints.me);
-
-        if (res.statusCode == 200) {
-          _isValid = true;
-        } else {
-          _isValid = false;
-        }
-      } catch (e) {
+        final res = await ApiClient.instance.dio.get(Endpoints.me);
+        _isValid = res.statusCode == 200;
+      } catch (_) {
         _isValid = false;
       } finally {
-        _isChecking = false;
         _checkedOnce = true;
+        _isChecking = false;
       }
     }
 
     if (!_isValid) {
+      reset();
       await TokenStorage.instance.clear();
       return '/login';
     }
 
-    if (isLoggingIn) return '/home';
+    if (isLogin) {
+      if (role == 'admin' || role == 'super_admin') return '/admin';
+      return '/home';
+    }
+
+    if (isAdminRoute && role != 'admin' && role != 'super_admin') {
+      return '/home';
+    }
 
     return null;
   }

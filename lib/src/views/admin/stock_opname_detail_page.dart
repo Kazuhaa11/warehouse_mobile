@@ -197,14 +197,60 @@ class StockOpnameDetailPage extends StatelessWidget {
                                   Text('Tercatat: ${it['counted_qty'] ?? 0}'),
                                 ],
                               ),
-                              trailing: Text(
-                                'Δ $diff',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: diff == 0
-                                      ? Colors.grey
-                                      : Colors.redAccent,
-                                ),
+                              trailing: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    'Δ $diff',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: diff == 0
+                                          ? Colors.grey
+                                          : Colors.redAccent,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (_) => AlertDialog(
+                                          title: const Text('Hapus Item'),
+                                          content: const Text(
+                                            'Yakin ingin menghapus item ini?',
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context, false),
+                                              child: const Text('Batal', style: TextStyle(color: Colors.black)),
+                                            ),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.red,
+                                              ),
+                                              onPressed: () =>
+                                                  Navigator.pop(context, true),
+                                              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+
+                                      if (confirm == true && context.mounted) {
+                                        context
+                                            .read<StockOpnameDetailCubit>()
+                                            .deleteItem(
+                                              sessionId: sessionId,
+                                              itemId: it['id'],
+                                            );
+                                      }
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
                           );

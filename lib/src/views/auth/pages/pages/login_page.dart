@@ -92,7 +92,7 @@ class LoginPage extends StatelessWidget {
 
                               if (!context.mounted) return;
 
-                              if (role == 'admin') {
+                              if (role == 'admin' || role == 'super_admin') {
                                 _showSnack(
                                   context,
                                   "Login sukses sebagai Admin",

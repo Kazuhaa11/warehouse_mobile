@@ -33,14 +33,18 @@ class ApiClient {
   }
 
   String _buildBaseUrl(String ip) {
-    return "http://$ip/lm/whsEng/public/";
+    return "http://$ip/warehouse-new/public/";
+  }
+
+  bool _isValidHost(String ip) {
+    return ip == "localhost" || ip.contains(".");
   }
 
   Future<void> _setBaseUrl(String ip) async {
     _serverIp = ip;
 
-    if (!ip.contains(".")) {
-      _applyOptions("");
+    if (!_isValidHost(ip)) {
+      _applyOptions(null);
       return;
     }
 
@@ -49,7 +53,7 @@ class ApiClient {
   }
 
   void _applyOptions(String? baseUrl) {
-    final safeUrl = baseUrl ?? "http://0.0.0.0/";
+    final safeUrl = baseUrl ?? "http://localhost:8080/";
 
     _dio.options = BaseOptions(
       baseUrl: safeUrl,
@@ -150,10 +154,5 @@ class ApiClient {
   Future<void> _forceLogout() async {
     await TokenStorage.instance.clear();
     AuthGuard.reset();
-
-    final nav = TokenStorage.navigatorKey.currentState;
-    if (nav != null) {
-      nav.pushNamedAndRemoveUntil('/login', (route) => false);
-    }
   }
 }

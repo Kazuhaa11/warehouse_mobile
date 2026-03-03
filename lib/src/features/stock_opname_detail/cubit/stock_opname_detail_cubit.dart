@@ -33,9 +33,22 @@ class StockOpnameDetailCubit extends Cubit<StockOpnameDetailState> {
     emit(StockOpnameDetailLoading());
     try {
       final res = await _dio.get(Endpoints.stockOpnameDetail(sessionId));
+
       if (res.statusCode == 200 && res.data is Map<String, dynamic>) {
-        final data = res.data['data'] ?? {};
-        emit(StockOpnameDetailLoaded(data));
+        final raw = res.data['data'] ?? {};
+
+        final items = (raw['items'] as List<dynamic>? ?? []).map((e) {
+          final m = Map<String, dynamic>.from(e as Map);
+
+          m['id'] = int.tryParse(m['id'].toString()) ?? 0;
+          m['session_id'] = int.tryParse(m['session_id'].toString()) ?? 0;
+          m['diff_qty'] = double.tryParse(m['diff_qty'].toString()) ?? 0;
+          m['counted_qty'] = double.tryParse(m['counted_qty'].toString()) ?? 0;
+
+          return m;
+        }).toList();
+
+        emit(StockOpnameDetailLoaded({...raw, 'items': items}));
       } else {
         emit(StockOpnameDetailError('Gagal memuat data'));
       }
@@ -48,11 +61,20 @@ class StockOpnameDetailCubit extends Cubit<StockOpnameDetailState> {
     try {
       final res = await _dio.post(Endpoints.stockOpnameFinalize(sessionId));
       if (res.statusCode == 200) {
-        emit(StockOpnameDetailFinalized(' Sesi berhasil difinalisasi'));
+        emit(StockOpnameDetailFinalized('Sesi berhasil difinalisasi'));
         await fetchDetail(sessionId);
       } else {
         emit(StockOpnameDetailError('Gagal finalisasi'));
       }
+    } catch (e) {
+      emit(StockOpnameDetailError(e.toString()));
+    }
+  }
+
+  Future<void> deleteItem({required int sessionId, required int itemId}) async {
+    try {
+      await _dio.delete(Endpoints.stockOpnameDeleteItem(sessionId, itemId));
+      await fetchDetail(sessionId);
     } catch (e) {
       emit(StockOpnameDetailError(e.toString()));
     }

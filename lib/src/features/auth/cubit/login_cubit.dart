@@ -35,7 +35,7 @@ class LoginCubit extends Cubit<LoginState> {
 
       final role = (user['role'] ?? '').toString().toLowerCase();
 
-      const allowedRoles = ['mobile', 'admin'];
+      const allowedRoles = ['mobile', 'admin', 'super_admin'];
 
       if (!allowedRoles.contains(role)) {
         emit(
